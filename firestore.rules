@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  match /resultados/{id} {
+   function partido() { return id in ["Matutino-0-08:00","Matutino-1-08:00","Matutino-2-08:00","Matutino-3-08:00","Matutino-4-08:00","Matutino-5-08:00","Matutino-0-08:15","Matutino-1-08:15","Matutino-2-08:15","Matutino-3-08:15","Matutino-4-08:15","Matutino-5-08:15","Matutino-0-08:30","Matutino-1-08:30","Matutino-2-08:30","Matutino-3-08:30","Matutino-4-08:30","Matutino-5-08:30","Matutino-3-08:45","Matutino-4-08:45","Matutino-5-08:45","Matutino-3-09:30","Matutino-4-09:30","Matutino-5-09:30","Matutino-0-09:45","Matutino-1-09:45","Matutino-2-09:45","Matutino-3-09:45","Matutino-4-09:45","Matutino-5-09:45","Matutino-0-10:00","Matutino-1-10:00","Matutino-2-10:00","Matutino-3-10:00","Matutino-4-10:00","Matutino-5-10:00","Matutino-0-10:15","Matutino-1-10:15","Matutino-2-10:15","Matutino-0-10:30","Matutino-1-10:30","Matutino-2-10:30","Vespertino-0-14:30","Vespertino-1-14:30","Vespertino-2-14:30","Vespertino-3-14:30","Vespertino-4-14:30","Vespertino-5-14:30","Vespertino-0-14:45","Vespertino-1-14:45","Vespertino-2-14:45","Vespertino-3-14:45","Vespertino-4-14:45","Vespertino-5-14:45","Vespertino-0-15:00","Vespertino-1-15:00","Vespertino-2-15:00","Vespertino-3-15:00","Vespertino-4-15:00","Vespertino-5-15:00","Vespertino-0-15:15","Vespertino-1-15:15","Vespertino-2-15:15","Vespertino-3-15:15","Vespertino-4-15:15","Vespertino-5-15:15","Vespertino-0-16:00","Vespertino-1-16:00","Vespertino-2-16:00","Vespertino-3-16:00","Vespertino-4-16:00","Vespertino-5-16:00","Vespertino-0-16:15","Vespertino-1-16:15","Vespertino-2-16:15","Vespertino-3-16:15","Vespertino-4-16:15","Vespertino-5-16:15","Vespertino-0-16:30","Vespertino-1-16:30","Vespertino-2-16:30","Vespertino-3-16:30","Vespertino-4-16:30","Vespertino-5-16:30","Vespertino-0-16:45","Vespertino-1-16:45","Vespertino-2-16:45","Vespertino-3-16:45","Vespertino-4-16:45","Vespertino-5-16:45"]; }
+   allow read: if true;
+   allow delete: if partido();
+   allow create, update: if partido()
+    && request.resource.data.keys().hasOnly(['a','b'])
+    && request.resource.data.a is number && request.resource.data.a >= 0 && request.resource.data.a <= 999
+    && request.resource.data.b is number && request.resource.data.b >= 0 && request.resource.data.b <= 999;
+  }
+ }
+}

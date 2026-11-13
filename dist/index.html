@@ -38,7 +38,7 @@ dialog::backdrop{background:#161943bb}
 <button id="export">Exportar CSV</button><button id="screen">Modo pantalla</button></div>
 <p id="count" role="status"></p><p><small id="sync"></small></p><div id="list"></div></main>
 <div id="board" class="board" hidden><div class="board-head"><div class="board-brand"><img class="crest" src="./logo-liceo6.png" alt="Escudo del Liceo N.º 6" width="1254" height="1254"><h2 id="board-title"></h2></div><span id="board-sync"></span><button id="board-turn"></button><button id="exit">Salir</button></div><div id="board-grid" class="board-grid"></div></div>
-<dialog id="editor"><form id="form"><h2 id="match"></h2><p id="details"></p><div class="inputs"><label><span id="teamA"></span><input id="a" type="number" inputmode="decimal" min="0" max="999" step="any" required></label><label><span id="teamB"></span><input id="b" type="number" inputmode="decimal" min="0" max="999" step="any" required></label></div><p id="code-row" hidden><label>Clave de docentes<input id="teacher-code" type="password"></label></p><button class="primary">Guardar resultado</button> <button type="button" id="cancel">Cancelar</button> <button type="button" id="clear" hidden>Quitar resultado</button><p id="error" role="alert"></p></form></dialog>
+<dialog id="editor"><form id="form"><h2 id="match"></h2><p id="details"></p><div class="inputs"><label><span id="teamA"></span><input id="a" type="number" inputmode="decimal" min="0" max="999" step="any" required></label><label><span id="teamB"></span><input id="b" type="number" inputmode="decimal" min="0" max="999" step="any" required></label></div><button class="primary">Guardar resultado</button> <button type="button" id="cancel">Cancelar</button> <button type="button" id="clear" hidden>Quitar resultado</button><p id="error" role="alert"></p></form></dialog>
 <script type="module">
 const sports=['Balón prisionero','Tenis de mesa','Ajedrez','Fútbol masculino','Handball femenino','Básquetbol mixto'];
 const schedules=[
@@ -52,20 +52,16 @@ const matches=schedules.flatMap(([turn,venue,disciplines,times,pairs])=>discipli
 const el=id=>document.getElementById(id);
 const key='jornada-liceo6-resultados-v1';
 const shared=location.protocol!=='file:';
-let cloud, auth, db;
-const teacherEmail='docentes@jornada-liceo6.example';
+let cloud, db;
 async function connect(){
- const [app, a, f, config]=await Promise.all([
+ const [app, f, config]=await Promise.all([
   import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
-  import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js'),
   import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js'),
   fetch('./firebase-config.json').then(r=>r.json())
  ]);
  const instance=app.initializeApp(config);
- auth=a.getAuth(instance);
- await auth.authStateReady();
  db=f.getFirestore(instance);
- cloud={...a,...f};
+ cloud=f;
  f.onSnapshot(f.collection(db,'resultados'),{includeMetadataChanges:true},snapshot=>{
   scores=Object.fromEntries(snapshot.docs.filter(d=>matches.some(m=>m.id===d.id)).map(d=>[d.id,[d.data().a,d.data().b]]));
   render();
@@ -122,27 +118,21 @@ function open(m){
  el('a').value=result?.[0]??'';
  el('b').value=result?.[1]??'';
  el('clear').hidden=!result;
- el('code-row').hidden=!shared||Boolean(auth?.currentUser);
- el('teacher-code').required=!el('code-row').hidden;
- el('teacher-code').value='';
  el('error').textContent='';
  el('editor').showModal();
 }
 async function save(result){
  if(shared){
   const matchId=selected.id;
-  const code=el('teacher-code').value.trim();
-  if(!auth?.currentUser&&!code){el('error').textContent='Ingresa la clave de docentes.';return}
   const submit=el('form').querySelector('.primary');
   submit.disabled=el('clear').disabled=true;
   try{
    if(!cloud)throw Error('Firebase todavía no está conectado.');
-   if(!auth.currentUser)await cloud.signInWithEmailAndPassword(auth,teacherEmail,code);
    const record=cloud.doc(db,'resultados',matchId);
    if(result)await cloud.setDoc(record,{a:result[0],b:result[1]});
    else await cloud.deleteDoc(record);
    el('editor').close();
-  }catch(error){el('error').textContent=error.code?.startsWith('auth/')?'Revisa la clave de docentes y vuelve a intentar.':(error.code?'No se pudo guardar. Revisa la conexión o los permisos.':error.message)}
+  }catch(error){el('error').textContent=(error.code?'No se pudo guardar. Revisa la conexión o los permisos.':error.message)}
   finally{submit.disabled=el('clear').disabled=false}
   return;
  }
