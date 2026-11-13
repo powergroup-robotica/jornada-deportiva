@@ -6,7 +6,22 @@
 <style>
 .board{height:100dvh;padding:14px;display:grid;grid-template-rows:auto 1fr;gap:10px;background:#102c26;color:white}.board[hidden]{display:none}.board h2{margin:0}.board-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.board-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:10px;min-height:0}.board section{background:#1e4338;border-radius:10px;padding:8px;display:grid;grid-template-rows:auto repeat(8,minmax(0,1fr));min-height:0}.board h3{margin:0;color:#d9fa68;font-size:clamp(11px,2.3vh,24px)}.board-row{display:grid;grid-template-columns:1fr 1fr 1.1fr 1fr;align-items:center;text-align:center;border-bottom:1px solid #ffffff30;font-size:clamp(10px,2.2vh,24px);font-variant-numeric:tabular-nums}.board-row strong{color:#d9fa68}body.screen header,body.screen main{display:none}
 </style>
-<header><p>LICEO N.º 6 · RIVERA</p><h1>Jornada deportiva</h1><div>Carga de resultados para docentes</div></header>
+<style>
+:root{--indigo:#303582;--navy:#161943;--cyan:#00bfe9;--yellow:#fff024}
+body{background:#f0f8fc;color:var(--navy)}
+header{display:flex;align-items:center;gap:clamp(12px,3vw,32px);background:linear-gradient(120deg,var(--navy),var(--indigo));border-bottom-color:var(--cyan);padding-block:clamp(25px,5vw,56px)}
+header p{color:var(--yellow)}header h1{font-size:clamp(1.75rem,7vw,5.5rem)}
+.crest{object-fit:contain;background:white;border-radius:14px;padding:4px;flex-shrink:0}
+header .crest{width:clamp(56px,14vw,132px);height:auto}
+button.primary{background:var(--yellow);border-color:var(--indigo)}
+.card{border-color:#b8dce8}.score{background:#e4f7fd}small{color:#3a4e6d}
+dialog::backdrop{background:#161943bb}
+.board{background:var(--navy)}.board section{background:var(--indigo)}
+.board h3{color:#8ceaff}.board-row strong{color:var(--yellow)}
+.board-brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.board-brand .crest{width:clamp(28px,6vh,58px);height:auto;border-radius:8px}
+</style>
+<header><img class="crest" src="./logo-liceo6.png" alt="Escudo del Liceo N.º 6" width="1254" height="1254"><div><p>LICEO N.º 6 · RIVERA</p><h1>Jornada deportiva</h1><div>Carga de resultados para docentes</div></div></header>
 <main><h2>Selecciona el turno</h2>
 <div class="tools" role="group" aria-label="Turno">
 <button type="button" class="primary" data-turn="Matutino" aria-pressed="true">Matutino</button>
@@ -18,7 +33,7 @@
 <label>Estado<select id="state"><option value="">Todos</option><option>Pendiente</option><option>Finalizado</option></select></label>
 <button id="export">Exportar CSV</button><button id="screen">Modo pantalla</button></div>
 <p id="count" role="status"></p><p><small id="sync"></small></p><div id="list" class="list"></div></main>
-<div id="board" class="board" hidden><div class="board-head"><h2 id="board-title"></h2><span id="board-sync"></span><button id="board-turn"></button><button id="exit">Salir</button></div><div id="board-grid" class="board-grid"></div></div>
+<div id="board" class="board" hidden><div class="board-head"><div class="board-brand"><img class="crest" src="./logo-liceo6.png" alt="Escudo del Liceo N.º 6" width="1254" height="1254"><h2 id="board-title"></h2></div><span id="board-sync"></span><button id="board-turn"></button><button id="exit">Salir</button></div><div id="board-grid" class="board-grid"></div></div>
 <dialog id="editor"><form id="form"><h2 id="match"></h2><p id="details"></p><div class="inputs"><label><span id="teamA"></span><input id="a" type="number" inputmode="decimal" min="0" max="999" step="any" required></label><label><span id="teamB"></span><input id="b" type="number" inputmode="decimal" min="0" max="999" step="any" required></label></div><p id="code-row" hidden><label>Clave de docentes<input id="teacher-code" type="password"></label></p><button class="primary">Guardar resultado</button> <button type="button" id="cancel">Cancelar</button> <button type="button" id="clear" hidden>Quitar resultado</button><p id="error" role="alert"></p></form></dialog>
 <script type="module">
 const sports=['Balón prisionero','Tenis de mesa','Ajedrez','Fútbol masculino','Handball femenino','Básquetbol mixto'];
