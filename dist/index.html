@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Jornada deportiva · Liceo 6</title>
+<html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>JORNADA DEPORTIVA LICEO 6</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#eef1ed;color:#122b26;font:16px system-ui,sans-serif}header{background:#102c26;color:white;padding:56px max(5vw,calc((100% - 1050px)/2));border-bottom:7px solid #d9fa68}header p{margin:0;color:#d9fa68;font-weight:750;letter-spacing:.09em}h1{font-size:clamp(2.5rem,8vw,5.5rem);letter-spacing:-.065em;line-height:1;margin:.2em 0}main{max-width:1090px;margin:auto;padding:26px 20px 60px}.tools{display:flex;gap:12px;flex-wrap:wrap;align-items:end}label{display:grid;gap:5px;font-weight:650}select,button,input{font:inherit;padding:9px;border:1px solid #9aaea4;border-radius:8px;background:white;color:inherit}button{cursor:pointer;font-weight:700}button.primary{background:#d9fa68;border-color:#122b26}.list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr));gap:12px}.card{background:white;border-radius:14px;padding:16px;border:1px solid #cbd8cf}.meta{display:flex;justify-content:space-between;gap:8px;font-size:.87rem}.teams{display:flex;justify-content:space-between;align-items:center;text-align:center;gap:8px;margin:18px 0;font-size:1.4rem;font-weight:800}.score{background:#edf4e9;border-radius:8px;padding:5px 12px;white-space:nowrap}.foot{display:flex;justify-content:space-between;align-items:center;gap:8px}small{color:#425a51}dialog{border:0;border-radius:16px;width:min(440px,94vw);padding:24px}dialog::backdrop{background:#102c26aa}.inputs{display:flex;gap:12px;margin:16px 0}.inputs label{width:50%}input{width:100%}body:has(dialog[open]){overflow:hidden}
 </style>
@@ -25,7 +25,7 @@ dialog::backdrop{background:#161943bb}
 .board-brand{display:flex;align-items:center;gap:10px;margin-right:auto}
 .board-brand .crest{width:clamp(28px,6vh,58px);height:auto;border-radius:8px}
 </style>
-<header><img class="crest" src="./logo-liceo6.png" alt="Escudo del Liceo N.º 6" width="1254" height="1254"><div><p>LICEO N.º 6 · RIVERA</p><h1>Jornada deportiva</h1><div>Carga de resultados para docentes</div></div></header>
+<header><img class="crest" src="./logo-liceo6.png" alt="Escudo del Liceo N.º 6" width="1254" height="1254"><div><p>LICEO N.º 6 · RIVERA</p><h1>JORNADA DEPORTIVA LICEO 6</h1><div>Carga de resultados para docentes</div></div></header>
 <main><h2>Selecciona el turno</h2>
 <div class="tools" role="group" aria-label="Turno">
 <button type="button" class="primary" data-turn="Matutino" aria-pressed="true">Matutino</button>
@@ -168,7 +168,7 @@ for(const button of turnButtons)button.onclick=()=>{
 for(const id of ['sport','state'])el(id).onchange=render;
 window.addEventListener('storage',e=>{if(!shared&&e.key===key){load();render()}});
 function renderBoard(){
- el('board-title').textContent='Liceo 6 · '+turn;
+ el('board-title').textContent='JORNADA DEPORTIVA LICEO 6 · '+turn;
  el('board-turn').textContent=turn==='Matutino'?'Vespertino':'Matutino';
  el('board-grid').replaceChildren(...byDiscipline(matches.filter(m=>m.turn===turn)).map(([sport,games])=>{
   const section=document.createElement('section');
