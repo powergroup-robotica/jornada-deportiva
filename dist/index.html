@@ -15,6 +15,8 @@ header p{color:var(--yellow)}header h1{font-size:clamp(1.75rem,7vw,5.5rem)}
 header .crest{width:clamp(56px,14vw,132px);height:auto}
 button.primary{background:var(--yellow);border-color:var(--indigo)}
 .card{border-color:#b8dce8}.score{background:#e4f7fd}small{color:#3a4e6d}
+.discipline+.discipline{margin-top:24px}
+.discipline h3{margin:0 0 10px;padding:8px 12px;border-left:4px solid var(--cyan);background:#e4f7fd}
 dialog::backdrop{background:#161943bb}
 .board{background:var(--navy)}.board section{background:var(--indigo)}
 .board h3{color:#8ceaff}.board-row strong{color:var(--yellow)}
@@ -32,7 +34,7 @@ dialog::backdrop{background:#161943bb}
 <label>Disciplina<select id="sport"><option value="">Todas</option></select></label>
 <label>Estado<select id="state"><option value="">Todos</option><option>Pendiente</option><option>Finalizado</option></select></label>
 <button id="export">Exportar CSV</button><button id="screen">Modo pantalla</button></div>
-<p id="count" role="status"></p><p><small id="sync"></small></p><div id="list" class="list"></div></main>
+<p id="count" role="status"></p><p><small id="sync"></small></p><div id="list"></div></main>
 <div id="board" class="board" hidden><div class="board-head"><div class="board-brand"><img class="crest" src="./logo-liceo6.png" alt="Escudo del Liceo N.º 6" width="1254" height="1254"><h2 id="board-title"></h2></div><span id="board-sync"></span><button id="board-turn"></button><button id="exit">Salir</button></div><div id="board-grid" class="board-grid"></div></div>
 <dialog id="editor"><form id="form"><h2 id="match"></h2><p id="details"></p><div class="inputs"><label><span id="teamA"></span><input id="a" type="number" inputmode="decimal" min="0" max="999" step="any" required></label><label><span id="teamB"></span><input id="b" type="number" inputmode="decimal" min="0" max="999" step="any" required></label></div><p id="code-row" hidden><label>Clave de docentes<input id="teacher-code" type="password"></label></p><button class="primary">Guardar resultado</button> <button type="button" id="cancel">Cancelar</button> <button type="button" id="clear" hidden>Quitar resultado</button><p id="error" role="alert"></p></form></dialog>
 <script type="module">
@@ -80,14 +82,28 @@ function render(){
  el('count').textContent=visible.length+' de '+itinerary.length+' encuentros · '+itinerary.filter(m=>scores[m.id]).length+' finalizados';
  el('list').replaceChildren();
  renderBoard();
- for(const m of visible){
+ for(const [sport, games] of byDiscipline(visible)){
+  const section=document.createElement('section');
+  section.className='discipline';
+  const title=document.createElement('h3');
+  title.textContent=sport;
+  const cards=document.createElement('div');
+  cards.className='list';
+  for(const m of games)cards.append(matchCard(m));
+  section.append(title,cards);
+  el('list').append(section);
+ }
+}
+function byDiscipline(games){
+ return sports.map(sport=>[sport,games.filter(m=>m.sport===sport)]).filter(([,group])=>group.length);
+}
+function matchCard(m){
   const result=scores[m.id];
   const card=document.createElement('article');
   card.className='card';
   card.innerHTML='<div class="meta"><strong>'+m.sport+'</strong><time>'+m.time+'</time></div><div class="teams"><span>'+m.teams[0]+'</span><span class="score">'+(result?result.map(Number).join(' – '):'vs.')+'</span><span>'+m.teams[1]+'</span></div><div class="foot"><small>'+m.venue+' · '+m.turn+'</small><button type="button">'+(result?'Editar':'Cargar')+'</button></div>';
   card.querySelector('button').onclick=()=>open(m);
-  el('list').append(card);
- }
+  return card;
 }
 function open(m){
  selected=m;
@@ -147,12 +163,12 @@ window.addEventListener('storage',e=>{if(!shared&&e.key===key){load();render()}}
 function renderBoard(){
  el('board-title').textContent='Liceo 6 · '+turn;
  el('board-turn').textContent=turn==='Matutino'?'Vespertino':'Matutino';
- el('board-grid').replaceChildren(...sports.map(sport=>{
+ el('board-grid').replaceChildren(...byDiscipline(matches.filter(m=>m.turn===turn)).map(([sport,games])=>{
   const section=document.createElement('section');
   const title=document.createElement('h3');
   title.textContent=sport;
   section.append(title);
-  for(const m of matches.filter(m=>m.turn===turn&&m.sport===sport)){
+  for(const m of games){
    const row=document.createElement('div');
    row.className='board-row';
    row.innerHTML='<time>'+m.time+'</time><span>'+m.teams[0]+'</span><strong>'+(scores[m.id]?.join('–')??'—')+'</strong><span>'+m.teams[1]+'</span>';
