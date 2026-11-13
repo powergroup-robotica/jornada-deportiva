@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Jornada deportiva · Liceo 6</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eef1ed;color:#122b26;font:16px system-ui,sans-serif}header{background:#102c26;color:white;padding:56px max(5vw,calc((100% - 1050px)/2));border-bottom:7px solid #d9fa68}header p{margin:0;color:#d9fa68;font-weight:750;letter-spacing:.09em}h1{font-size:clamp(2.5rem,8vw,5.5rem);letter-spacing:-.065em;line-height:1;margin:.2em 0}main{max-width:1090px;margin:auto;padding:26px 20px 60px}.tools{display:flex;gap:12px;flex-wrap:wrap;align-items:end}label{display:grid;gap:5px;font-weight:650}select,button,input{font:inherit;padding:9px;border:1px solid #9aaea4;border-radius:8px;background:white;color:inherit}button{cursor:pointer;font-weight:700}button.primary{background:#d9fa68;border-color:#122b26}.list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr));gap:12px}.card{background:white;border-radius:14px;padding:16px;border:1px solid #cbd8cf}.meta{display:flex;justify-content:space-between;gap:8px;font-size:.87rem}.teams{display:flex;justify-content:space-between;align-items:center;text-align:center;gap:8px;margin:18px 0;font-size:1.4rem;font-weight:800}.score{background:#edf4e9;border-radius:8px;padding:5px 12px;white-space:nowrap}.foot{display:flex;justify-content:space-between;align-items:center;gap:8px}small{color:#425a51}dialog{border:0;border-radius:16px;width:min(440px,94vw);padding:24px}dialog::backdrop{background:#102c26aa}.inputs{display:flex;gap:12px;margin:16px 0}.inputs label{width:50%}input{width:100%}body:has(dialog[open]){overflow:hidden}
+</style>
+<style>
+.board{height:100dvh;padding:14px;display:grid;grid-template-rows:auto 1fr;gap:10px;background:#102c26;color:white}.board[hidden]{display:none}.board h2{margin:0}.board-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.board-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:10px;min-height:0}.board section{background:#1e4338;border-radius:10px;padding:8px;display:grid;grid-template-rows:auto repeat(8,minmax(0,1fr));min-height:0}.board h3{margin:0;color:#d9fa68;font-size:clamp(11px,2.3vh,24px)}.board-row{display:grid;grid-template-columns:1fr 1fr 1.1fr 1fr;align-items:center;text-align:center;border-bottom:1px solid #ffffff30;font-size:clamp(10px,2.2vh,24px);font-variant-numeric:tabular-nums}.board-row strong{color:#d9fa68}body.screen header,body.screen main{display:none}
+</style>
+<header><p>LICEO N.º 6 · RIVERA</p><h1>Jornada deportiva</h1><div>Carga de resultados para docentes</div></header>
+<main><h2>Selecciona el turno</h2>
+<div class="tools" role="group" aria-label="Turno">
+<button type="button" class="primary" data-turn="Matutino" aria-pressed="true">Matutino</button>
+<button type="button" data-turn="Vespertino" aria-pressed="false">Vespertino</button>
+</div>
+<h2 id="itinerary">Itinerario matutino</h2>
+<div class="tools">
+<label>Disciplina<select id="sport"><option value="">Todas</option></select></label>
+<label>Estado<select id="state"><option value="">Todos</option><option>Pendiente</option><option>Finalizado</option></select></label>
+<button id="export">Exportar CSV</button><button id="screen">Modo pantalla</button></div>
+<p id="count" role="status"></p><p><small id="sync"></small></p><div id="list" class="list"></div></main>
+<div id="board" class="board" hidden><div class="board-head"><h2 id="board-title"></h2><span id="board-sync"></span><button id="board-turn"></button><button id="exit">Salir</button></div><div id="board-grid" class="board-grid"></div></div>
+<dialog id="editor"><form id="form"><h2 id="match"></h2><p id="details"></p><div class="inputs"><label><span id="teamA"></span><input id="a" type="number" inputmode="decimal" min="0" max="999" step="any" required></label><label><span id="teamB"></span><input id="b" type="number" inputmode="decimal" min="0" max="999" step="any" required></label></div><p id="code-row" hidden><label>Clave de docentes<input id="teacher-code" type="password"></label></p><button class="primary">Guardar resultado</button> <button type="button" id="cancel">Cancelar</button> <button type="button" id="clear" hidden>Quitar resultado</button><p id="error" role="alert"></p></form></dialog>
+<script type="module">
+const sports=['Balón prisionero','Tenis de mesa','Ajedrez','Fútbol masculino','Handball femenino','Básquetbol mixto'];
+const schedules=[
+['Matutino','Liceo',[0,1,2],'08:00 08:15 08:30 09:45 10:00 10:15 10:30','81/83 82/84 99/910-3 91/92 94/96 92/97 95/98'],
+['Matutino','Plaza de Deporte',[3,4],'08:00 08:15 08:30 08:45 09:30 09:45 10:00','91/92 94/96 92/97 95/98 81/84 82/83 99/910-3'],
+['Matutino','Plaza de Deporte',[5],'08:00 08:15 08:30 08:45 09:30 09:45 10:00','92/97 95/98 91/92 94/96 99/910-3 81/84 82/83'],
+['Vespertino','Liceo',[0,1,2],'14:30 14:45 15:00 15:15 16:00 16:15 16:30 16:45','85/87 86/88 89/85 72/78 73/77 76/74 71/75 79/77'],
+['Vespertino','Plaza de Deporte',[3,4],'14:30 14:45 15:00 15:15 16:00 16:15 16:30 16:45','73/77 76/74 71/75 79/77 85/87 86/88 89/85 72/78'],
+['Vespertino','Plaza de Deporte',[5],'14:30 14:45 15:00 15:15 16:00 16:15 16:30 16:45','71/75 79/77 73/77 76/74 89/85 72/78 85/87 86/88']];
+const matches=schedules.flatMap(([turn,venue,disciplines,times,pairs])=>disciplines.flatMap(s=>times.split(' ').map((time,i)=>({id:[turn,s,time].join('-'),turn,venue,sport:sports[s],time,teams:pairs.split(' ')[i].split('/').map(t=>t[0]+'°'+t.slice(1))})))).sort((a,b)=>a.time.localeCompare(b.time));
+const el=id=>document.getElementById(id);
+const key='jornada-liceo6-resultados-v1';
+const shared=location.protocol!=='file:';
+let cloud, auth, db;
+const teacherEmail='docentes@jornada-liceo6.example';
+async function connect(){
+ const [app, a, f, config]=await Promise.all([
+  import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
+  import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js'),
+  import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js'),
+  fetch('./firebase-config.json').then(r=>r.json())
+ ]);
+ const instance=app.initializeApp(config);
+ auth=a.getAuth(instance);
+ await auth.authStateReady();
+ db=f.getFirestore(instance);
+ cloud={...a,...f};
+ f.onSnapshot(f.collection(db,'resultados'),{includeMetadataChanges:true},snapshot=>{
+  scores=Object.fromEntries(snapshot.docs.filter(d=>matches.some(m=>m.id===d.id)).map(d=>[d.id,[d.data().a,d.data().b]]));
+  render();
+  status(snapshot.metadata.fromCache?'Conectando…':'En directo');
+ },()=>status('Sin conexión con Firebase'));
+}
+function status(message){el('sync').textContent=message;el('board-sync').textContent=message;}
+let scores={}, selected, turn='Matutino';
+function load(){try{scores=JSON.parse(localStorage.getItem(key))||{}}catch{scores={}}}
+if(!shared)load();
+sports.forEach(name=>el('sport').add(new Option(name,name)));
+function render(){
+ const itinerary=matches.filter(m=>m.turn===turn);
+ const visible=itinerary.filter(m=>(!el('sport').value||m.sport===el('sport').value)&&(!el('state').value||(scores[m.id]?'Finalizado':'Pendiente')===el('state').value));
+ el('itinerary').textContent='Itinerario '+turn.toLowerCase();
+ el('count').textContent=visible.length+' de '+itinerary.length+' encuentros · '+itinerary.filter(m=>scores[m.id]).length+' finalizados';
+ el('list').replaceChildren();
+ renderBoard();
+ for(const m of visible){
+  const result=scores[m.id];
+  const card=document.createElement('article');
+  card.className='card';
+  card.innerHTML='<div class="meta"><strong>'+m.sport+'</strong><time>'+m.time+'</time></div><div class="teams"><span>'+m.teams[0]+'</span><span class="score">'+(result?result.map(Number).join(' – '):'vs.')+'</span><span>'+m.teams[1]+'</span></div><div class="foot"><small>'+m.venue+' · '+m.turn+'</small><button type="button">'+(result?'Editar':'Cargar')+'</button></div>';
+  card.querySelector('button').onclick=()=>open(m);
+  el('list').append(card);
+ }
+}
+function open(m){
+ selected=m;
+ const result=scores[m.id];
+ el('match').textContent=m.teams.join(' vs. ');
+ el('details').textContent=[m.sport,m.turn,m.time].join(' · ');
+ el('teamA').textContent=m.teams[0];
+ el('teamB').textContent=m.teams[1];
+ el('a').value=result?.[0]??'';
+ el('b').value=result?.[1]??'';
+ el('clear').hidden=!result;
+ el('code-row').hidden=!shared||Boolean(auth?.currentUser);
+ el('teacher-code').required=!el('code-row').hidden;
+ el('teacher-code').value='';
+ el('error').textContent='';
+ el('editor').showModal();
+}
+async function save(result){
+ if(shared){
+  const matchId=selected.id;
+  const code=el('teacher-code').value.trim();
+  if(!auth?.currentUser&&!code){el('error').textContent='Ingresa la clave de docentes.';return}
+  const submit=el('form').querySelector('.primary');
+  submit.disabled=el('clear').disabled=true;
+  try{
+   if(!cloud)throw Error('Firebase todavía no está conectado.');
+   if(!auth.currentUser)await cloud.signInWithEmailAndPassword(auth,teacherEmail,code);
+   const record=cloud.doc(db,'resultados',matchId);
+   if(result)await cloud.setDoc(record,{a:result[0],b:result[1]});
+   else await cloud.deleteDoc(record);
+   el('editor').close();
+  }catch(error){el('error').textContent=error.code?.startsWith('auth/')?'Revisa la clave de docentes y vuelve a intentar.':(error.code?'No se pudo guardar. Revisa la conexión o los permisos.':error.message)}
+  finally{submit.disabled=el('clear').disabled=false}
+  return;
+ }
+ load();
+ if(result) scores[selected.id]=result;
+ else delete scores[selected.id];
+ try{localStorage.setItem(key,JSON.stringify(scores))}catch{load();el('error').textContent='El navegador no pudo guardar el resultado.';return}
+ el('editor').close();render();
+}
+el('form').onsubmit=e=>{e.preventDefault();save([el('a').valueAsNumber,el('b').valueAsNumber])};
+el('cancel').onclick=()=>el('editor').close();
+el('clear').onclick=()=>save(null);
+const turnButtons=document.querySelectorAll('[data-turn]');
+for(const button of turnButtons)button.onclick=()=>{
+ turn=button.dataset.turn;
+ for(const option of turnButtons){
+  const active=option===button;
+  option.classList.toggle('primary',active);
+  option.setAttribute('aria-pressed',String(active));
+ }
+ render();
+};
+for(const id of ['sport','state'])el(id).onchange=render;
+window.addEventListener('storage',e=>{if(!shared&&e.key===key){load();render()}});
+function renderBoard(){
+ el('board-title').textContent='Liceo 6 · '+turn;
+ el('board-turn').textContent=turn==='Matutino'?'Vespertino':'Matutino';
+ el('board-grid').replaceChildren(...sports.map(sport=>{
+  const section=document.createElement('section');
+  const title=document.createElement('h3');
+  title.textContent=sport;
+  section.append(title);
+  for(const m of matches.filter(m=>m.turn===turn&&m.sport===sport)){
+   const row=document.createElement('div');
+   row.className='board-row';
+   row.innerHTML='<time>'+m.time+'</time><span>'+m.teams[0]+'</span><strong>'+(scores[m.id]?.join('–')??'—')+'</strong><span>'+m.teams[1]+'</span>';
+   section.append(row);
+  }
+  return section;
+ }));
+}
+function setScreen(active){
+ document.body.classList.toggle('screen',active);
+ el('board').hidden=!active;
+}
+el('screen').onclick=()=>{setScreen(true);document.documentElement.requestFullscreen?.().catch(()=>{})};
+el('exit').onclick=()=>{setScreen(false);if(document.fullscreenElement)document.exitFullscreen()};
+el('board-turn').onclick=()=>[...turnButtons].find(b=>b.dataset.turn!==turn).click();
+el('export').onclick=()=>{
+ const rows=[['Turno','Sede','Disciplina','Hora','Grupo A','Grupo B','Marcador A','Marcador B'],...matches.map(m=>[m.turn,m.venue,m.sport,m.time,...m.teams,...(scores[m.id]||['',''])])];
+ const url=URL.createObjectURL(new Blob(['\ufeff',rows.map(r=>r.join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
+ const link=document.createElement('a');link.href=url;link.download='jornada-deportiva.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+render();
+setScreen(new URLSearchParams(location.search).has('pantalla'));
+if(shared){
+ status('Conectando…');
+ connect().catch(()=>status('Sin conexión con Firebase'));
+}else{
+ el('sync').textContent='Modo local · los marcadores se guardan en este navegador.';
+ el('board-sync').textContent='Modo local';
+}
+</script></html>
