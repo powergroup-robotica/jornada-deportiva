@@ -15,6 +15,7 @@ header p{color:var(--yellow)}header h1{font-size:clamp(1.75rem,7vw,5.5rem)}
 header .crest{width:clamp(56px,14vw,132px);height:auto}
 button.primary{background:var(--yellow);border-color:var(--indigo)}
 .card{border-color:#b8dce8}.score{background:#e4f7fd}small{color:#3a4e6d}
+.winner{background:var(--yellow);color:var(--navy);border-radius:6px;font-weight:800;padding-inline:4px}.winner small{color:inherit;font-size:.67em}.board-row .tie{color:#8ceaff}.score.tie{background:#d5f5ff}
 .discipline+.discipline{margin-top:24px}
 .discipline h3{margin:0 0 10px;padding:8px 12px;border-left:4px solid var(--cyan);background:#e4f7fd}
 dialog::backdrop{background:#161943bb}
@@ -97,11 +98,16 @@ function render(){
 function byDiscipline(games){
  return sports.map(sport=>[sport,games.filter(m=>m.sport===sport)]).filter(([,group])=>group.length);
 }
+function teamLabel(team,result,index){
+ const winner=result && result[index]>result[1-index];
+ return winner?'<span class="winner">'+team+' <small>✓</small><span hidden> Ganador</span></span>':'<span>'+team+'</span>';
+}
+function isTie(result){return result && result[0]===result[1]}
 function matchCard(m){
   const result=scores[m.id];
   const card=document.createElement('article');
   card.className='card';
-  card.innerHTML='<div class="meta"><strong>'+m.sport+'</strong><time>'+m.time+'</time></div><div class="teams"><span>'+m.teams[0]+'</span><span class="score">'+(result?result.map(Number).join(' – '):'vs.')+'</span><span>'+m.teams[1]+'</span></div><div class="foot"><small>'+m.venue+' · '+m.turn+'</small><button type="button">'+(result?'Editar':'Cargar')+'</button></div>';
+  card.innerHTML='<div class="meta"><strong>'+m.sport+'</strong><time>'+m.time+'</time></div><div class="teams">'+teamLabel(m.teams[0],result,0)+'<span class="score'+(isTie(result)?' tie':'')+'">'+(result?result.map(Number).join(' – ')+(isTie(result)?' · Empate':''):'vs.')+'</span>'+teamLabel(m.teams[1],result,1)+'</div><div class="foot"><small>'+m.venue+' · '+m.turn+'</small><button type="button">'+(result?'Editar':'Cargar')+'</button></div>';
   card.querySelector('button').onclick=()=>open(m);
   return card;
 }
@@ -171,7 +177,8 @@ function renderBoard(){
   for(const m of games){
    const row=document.createElement('div');
    row.className='board-row';
-   row.innerHTML='<time>'+m.time+'</time><span>'+m.teams[0]+'</span><strong>'+(scores[m.id]?.join('–')??'—')+'</strong><span>'+m.teams[1]+'</span>';
+   const result=scores[m.id];
+   row.innerHTML='<time>'+m.time+'</time>'+teamLabel(m.teams[0],result,0)+'<strong'+(isTie(result)?' class="tie" title="Empate"':'')+'>'+(result?.join('–')??'—')+'</strong>'+teamLabel(m.teams[1],result,1);
    section.append(row);
   }
   return section;
